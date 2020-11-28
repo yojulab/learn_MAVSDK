@@ -107,28 +107,7 @@ int main(int argc, char** argv)
         sleep_for(seconds(1));
     }
 
-    // Arm vehicle
-    std::cout << "Arming..." << std::endl;
-    const Action::Result arm_result = action->arm();
-
-    if (arm_result != Action::Result::Success) {
-        std::cout << ERROR_CONSOLE_TEXT << "Arming failed:" << arm_result << NORMAL_CONSOLE_TEXT
-                  << std::endl;
-        return 1;
-    }
-
-    // Take off
-    std::cout << "Taking off..." << std::endl;
-    const Action::Result takeoff_result = action->takeoff();
-    if (takeoff_result != Action::Result::Success) {
-        std::cout << ERROR_CONSOLE_TEXT << "Takeoff failed:" << takeoff_result
-                  << NORMAL_CONSOLE_TEXT << std::endl;
-        return 1;
-    }
-
     // Let it hover for a bit before landing again.
-    sleep_for(seconds(10));
-
     std::cout << "Landing..." << std::endl;
     const Action::Result land_result = action->land();
     if (land_result != Action::Result::Success) {

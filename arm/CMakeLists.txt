@@ -1,4 +1,4 @@
-set(PROJECT_NAME takeoff)
+set(PROJECT_NAME arm)
 
 cmake_minimum_required(VERSION 2.8.12)
 
