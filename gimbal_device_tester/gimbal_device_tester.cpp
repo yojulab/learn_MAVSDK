@@ -13,6 +13,7 @@
 #include <mutex>
 #include <sstream>
 #include <thread>
+#include <cmath>
 
 using namespace mavsdk;
 
