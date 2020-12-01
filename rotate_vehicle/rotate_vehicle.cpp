@@ -30,7 +30,7 @@ inline void offboard_log(const std::string& offb_mode, const std::string msg)
     std::cout << "[" << offb_mode << "] " << msg << std::endl;
 }
 
-bool offb_ctrl_body(std::shared_ptr<mavsdk::Offboard> offboard)
+bool offboard_ctrl_body(std::shared_ptr<mavsdk::Offboard> offboard)
 {
     const std::string offb_mode = "BODY";
 
@@ -44,7 +44,7 @@ bool offb_ctrl_body(std::shared_ptr<mavsdk::Offboard> offboard)
 
     offboard_log(offb_mode, "Turn clock-wise and climb");
     Offboard::VelocityBodyYawspeed cc_and_climb{};
-    cc_and_climb.down_m_s = -1.0f;
+    cc_and_climb.down_m_s = 1.0f;
     cc_and_climb.yawspeed_deg_s = 60.0f;
     offboard->set_velocity_body(cc_and_climb);
     std::this_thread::sleep_for(std::chrono::seconds(5));
@@ -87,6 +87,141 @@ bool offb_ctrl_body(std::shared_ptr<mavsdk::Offboard> offboard)
     offboard->set_velocity_body(stay);
     std::this_thread::sleep_for(std::chrono::seconds(8));
 
+    offboard_result = offboard->stop();
+    offboard_error_exit(offboard_result, "Offboard stop failed: ");
+    offboard_log(offb_mode, "Offboard stopped");
+
+    return true;
+}
+
+bool offboard_ctrl_attitude(std::shared_ptr<mavsdk::Offboard> offboard)
+{
+    const std::string offb_mode = "ATTITUDE";
+
+    // Send it once before starting offboard, otherwise it will be rejected.
+    Offboard::Attitude roll{};
+    roll.roll_deg = 80.0f;
+    roll.thrust_value = 0.6f;
+    offboard->set_attitude(roll);
+
+    Offboard::Result offboard_result = offboard->start();
+    offboard_error_exit(offboard_result, "Offboard start failed");
+    offboard_log(offb_mode, "Offboard started");
+
+    offboard_log(offb_mode, "ROLL 30");
+    offboard->set_attitude(roll);
+    std::this_thread::sleep_for(std::chrono::seconds(2)); // rolling
+
+    offboard_log(offb_mode, "ROLL -30");
+    roll.roll_deg = -30.0f;
+    offboard->set_attitude(roll);
+    std::this_thread::sleep_for(std::chrono::seconds(2)); // Let yaw settle.
+
+    offboard_log(offb_mode, "ROLL 0");
+    roll.roll_deg = 0.0f;
+    offboard->set_attitude(roll);
+    std::this_thread::sleep_for(std::chrono::seconds(2)); // Let yaw settle.
+
+    // Now, stop offboard mode.
+    offboard_result = offboard->stop();
+    offboard_error_exit(offboard_result, "Offboard stop failed: ");
+    offboard_log(offb_mode, "Offboard stopped");
+
+    return true;
+}
+
+bool offboard_ctrl_body_simple(std::shared_ptr<mavsdk::Offboard> offboard)
+{
+    const std::string offb_mode = "BODY";
+
+    // Send it once before starting offboard, otherwise it will be rejected.
+    Offboard::VelocityBodyYawspeed control_stick{};
+    offboard->set_velocity_body(control_stick);
+
+    Offboard::Result offboard_result = offboard->start();
+    offboard_error_exit(offboard_result, "Offboard start failed: ");
+    offboard_log(offb_mode, "Offboard started");
+
+    offboard_log(offb_mode, "Turn clock-wise and climb");
+    control_stick.down_m_s = 1.0f;
+    control_stick.yawspeed_deg_s = 60.0f;
+    offboard->set_velocity_body(control_stick);
+    std::this_thread::sleep_for(std::chrono::seconds(10));
+
+    // offboard_log(offb_mode, "Turn back anti-clockwise");
+    // control_stick.down_m_s = -1.0f;
+    // control_stick.yawspeed_deg_s = -60.0f;
+    // offboard->set_velocity_body(control_stick);
+    // std::this_thread::sleep_for(std::chrono::seconds(5));
+
+    // offboard_log(offb_mode, "Turn back anti-clockwise");
+    // Offboard::VelocityBodyYawspeed ccw{};
+    // ccw.down_m_s = -1.0f;
+    // ccw.yawspeed_deg_s = -60.0f;
+    // offboard->set_velocity_body(ccw);
+    // std::this_thread::sleep_for(std::chrono::seconds(5));
+
+    // offboard_log(offb_mode, "Wait for a bit");
+    // offboard->set_velocity_body(stay);
+    // std::this_thread::sleep_for(std::chrono::seconds(2));
+
+    // offboard_log(offb_mode, "Fly a circle");
+    // Offboard::VelocityBodyYawspeed circle{};
+    // circle.forward_m_s = 5.0f;
+    // circle.yawspeed_deg_s = 30.0f;
+    // offboard->set_velocity_body(circle);
+    // std::this_thread::sleep_for(std::chrono::seconds(15));
+
+    // offboard_log(offb_mode, "Wait for a bit");
+    // offboard->set_velocity_body(stay);
+    // std::this_thread::sleep_for(std::chrono::seconds(5));
+
+    // offboard_log(offb_mode, "Fly a circle sideways");
+    // circle.right_m_s = -5.0f;
+    // circle.yawspeed_deg_s = 30.0f;
+    // offboard->set_velocity_body(circle);
+    // std::this_thread::sleep_for(std::chrono::seconds(15));
+
+    // offboard_log(offb_mode, "Wait for a bit");
+    // offboard->set_velocity_body(stay);
+    // std::this_thread::sleep_for(std::chrono::seconds(8));
+
+    offboard_result = offboard->stop();
+    offboard_error_exit(offboard_result, "Offboard stop failed: ");
+    offboard_log(offb_mode, "Offboard stopped");
+
+    return true;
+}
+
+bool offboard_ctrl_attitude_simple(std::shared_ptr<mavsdk::Offboard> offboard)
+{
+    const std::string offb_mode = "ATTITUDE";
+
+    // Send it once before starting offboard, otherwise it will be rejected.
+    Offboard::Attitude control_stick{};
+    offboard->set_attitude(control_stick);
+
+    Offboard::Result offboard_result = offboard->start();
+    offboard_error_exit(offboard_result, "Offboard start failed");
+    offboard_log(offb_mode, "Offboard started");
+
+    offboard_log(offb_mode, "ROLL 40");
+    control_stick.roll_deg = 40.0f;
+    control_stick.thrust_value = 0.6f;
+    offboard->set_attitude(control_stick);
+    std::this_thread::sleep_for(std::chrono::seconds(2)); // rolling
+
+    // offboard_log(offb_mode, "ROLL -30");
+    // control_stick.roll_deg = -30.0f;
+    // offboard->set_attitude(control_stick);
+    // std::this_thread::sleep_for(std::chrono::seconds(2)); // Let yaw settle.
+
+    // offboard_log(offb_mode, "ROLL 0");
+    // control_stick.roll_deg = 0.0f;
+    // offboard->set_attitude(control_stick);
+    // std::this_thread::sleep_for(std::chrono::seconds(2)); // Let yaw settle.
+
+    // Now, stop offboard mode.
     offboard_result = offboard->stop();
     offboard_error_exit(offboard_result, "Offboard stop failed: ");
     offboard_log(offb_mode, "Offboard stopped");
@@ -177,10 +312,33 @@ int main(int argc, char** argv)
         return 1;
     }
 
+    // std::this_thread::sleep_for(std::chrono::seconds(10));      // As remove, Failed take off
+
     auto offboard = std::make_shared<Offboard>(system);
     //  using local NED co-ordinates
     bool ret = false;
-    ret = offb_ctrl_body(offboard);
+
+    // ret = offboard_ctrl_attitude(offboard);
+    // if (ret == false) {
+    //     return EXIT_FAILURE;
+    // }
+
+    // ret = offboard_ctrl_body(offboard);
+    // if (ret == false) {
+    //     return EXIT_FAILURE;
+    // }
+
+    // ret = offboard_ctrl_attitude_failedtakeoff(offboard);
+    // if (ret == false) {
+    //     return EXIT_FAILURE;
+    // }
+
+    ret = offboard_ctrl_attitude_simple(offboard);
+    if (ret == false) {
+        return EXIT_FAILURE;
+    }
+
+    ret = offboard_ctrl_body_simple(offboard);
     if (ret == false) {
         return EXIT_FAILURE;
     }
